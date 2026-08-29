@@ -24,11 +24,13 @@ model Event {
   eventType       String?  // Event type (transfer, mint, burn, etc.)
   schemaVersion   String?  // Blueprint schema version that translated this event (e.g. "v2", "1.0.0")
   executionDagId  String?  // FK to ExecutionDag (a tx can produce multiple events)
+  organizationId  String?  // FK to Organization (contract publisher/manager)
 
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
   executionDag    ExecutionDag? @relation(fields: [executionDagId], references: [id])
+  organization    Organization? @relation(fields: [organizationId], references: [id])
 
   @@index([contractId])
   @@index([ledger])
@@ -36,6 +38,7 @@ model Event {
   @@index([contractId, ledger])
   @@index([timestamp])
   @@index([schemaVersion])
+  @@index([organizationId])
 }
 
 model DeadLetterEvent {
@@ -120,4 +123,19 @@ model WebhookDelivery {
   @@index([subscriptionId])
   @@index([eventId])
   @@index([subscriptionId, eventId])
+}
+
+// Organization — represents entities that publish or manage contracts
+model Organization {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?
+  website     String?
+  logoUrl     String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  events      Event[]
+
+  @@index([name])
 }
